@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Contenidos Mínimos</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            overflow: auto;
+        }
+        header {
+            background: #2A2A2A;
+            color: #fff;
+            width: 100%;
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        h4 {
+            text-align: center;
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+        .toggle-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .toggle-button {
+            cursor: pointer;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px;
+            background-color: #C95A13;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1em;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .toggle-button:hover {
+            background-color: #A95A00;
+            transform: scale(1.05);
+        }
+        table {
+            width: 90%;
+            max-width: 900px;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #C95A13;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .group-header {
+            font-weight: bold;
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Contenidos Mínimos para {planEstudioId.nombre}</h1>
+</header>
+<h4>{detalle}</h4>
+<div class="toggle-container">
+    <button class="toggle-button" onclick="toggleSort()">PDF</button>
+    <button class="toggle-button" onclick="toggleSort()">CSV</button>
+</div>
+<table id="contenidosMinimosTable">
+    <thead>
+    <tr class="group-header">
+        <td colspan="7"><a href="{rutaPlanesEstudio}{planEstudioId.getPlanEstudioId}">Plan de estudio: {planEstudioId.getNombre}</a></td>
+    </tr>
+    <tr>
+        <th>Código</th>
+        <th>Nombre</th>
+        <th>Horas Teoría</th>
+        <th>Horas Práctica</th>
+        <th>Intensidad</th>
+        <th>Exigencia</th>
+    </tr>
+    </thead>
+    <tbody id="contenidosMinimosContainer">
+    {#for contenidoGrupo in contenidosAgrupadosPorAsignatura}
+    <tr class="group-header">
+        <td colspan="7"><a href="{rutaAsignaturas}/">Asignatura: {contenidoGrupo.asignaturaNombre}</a></td>
+    </tr>
+    {#for contenido in contenidoGrupo.contenidos}
+    <tr>
+        <td>{contenido.contenidoMinimoPlanEstudioId}</td>
+        <td>{contenido.nombre}</td>
+        <td>{contenido.horasTeoria or '-'}</td>
+        <td>{contenido.horasPractica or '-'}</td>
+        <td>{contenido.intensidadId or '-'}</td>
+        <td>{contenido.exigencia or '-'}</td>
+    </tr>
+    {/for}
+    <tr class="totales">
+        <td colspan="2">Totales por Asignatura</td>
+        <td>{contenidoGrupo.totalHorasTeoria}</td>
+        <td>{contenidoGrupo.totalHorasPractica}</td>
+        <td colspan="3">Total Asignatura: {contenidoGrupo.totalHorasTeoria + contenidoGrupo.totalHorasPractica} HS</td>
+    </tr>
+    {/for}
+
+    </tbody>
+</table>
+
+
+<script>
+    let sorted = false;
+
+    function toggleSort() {
+        const table = document.getElementById('contenidosMinimosTable');
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+        rows.sort((a, b) => {
+            return sorted
+                ? parseInt(a.getAttribute('data-carga-horaria')) - parseInt(b.getAttribute('data-carga-horaria'))
+                : parseInt(b.getAttribute('data-carga-horaria')) - parseInt(a.getAttribute('data-carga-horaria'));
+        });
+
+        const tbody = table.querySelector('tbody');
+        tbody.innerHTML = '';
+        rows.forEach(row => tbody.appendChild(row));
+
+        sorted = !sorted;
+    }
+</script>
+</body>
+</html>

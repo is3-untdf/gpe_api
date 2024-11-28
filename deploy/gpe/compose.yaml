@@ -1,0 +1,97 @@
+#version: '3.1'
+
+services:
+  db:
+    image: postgres:16
+    container_name: gpe_db
+    deploy:
+      resources:
+        limits:
+          memory: 250M # Limitar a un máximo de 50MB de RAM
+            #restart: always
+    environment:
+      POSTGRES_PASSWORD: ${PASSWORD_DB} # Si se explicita acá, no lo ponemos en el script
+      POSTGRES_USER: ${USERNAME_DB} # Si se explicita acá, no lo ponemos en el script
+      POSTGRES_DB: is3         # Si se explicita acá, no lo ponemos en el script
+        #ports:
+        # - 6542:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./migraciones:/docker-entrypoint-initdb.d # Montar la carpeta de scripts de la db
+        #entrypoint: ["sh", "-c", "/docker-entrypoint-initdb.d/migraciones/migraciones_script.sh"]
+      - csv_temporales:/tmp
+    networks:
+      - is3_red
+    hostname: gpe_db # El nombre del container en la red
+
+  api:
+    image: is3untdf/gpe_api:1.0.0
+    container_name: gpe_api
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+            #restart: always
+    environment:
+      # Timezone
+      QUARKUS_HIBERNATE_ORM_JDBC_TIMEZONE: America/Argentina/Ushuaia
+      QUARKUS_HIBERNATE_ORM_MAPPING_TIMEZONE_DEFAULT_STORAGE: normalize
+      # Loggeo
+      # Log Level
+      QUARKUS_LOG_CATEGORY_UNTDF_IS3_LEVEL: DEBUG
+      QUARKUS_LOG_FILE_ENABLE: true
+      QUARKUS_LOG_FILE_PATH: logs/pinta/pinta # Path relativo al directorio donde se almacenan los logs de la API
+      QUARKUS_LOG_FILE_ROTATION_FILE_SUFFIX: .yyyyMMdd
+      QUARKUS_LOG_FILE_ROTATION_ROTATE_ON_BOOT: true
+      # Configuracion DB
+      QUARKUS_DATASOURCE_DB_KIND: postgresql  
+      QUARKUS_DATASOURCE_USERNAME: ${USERNAME_DB}
+      QUARKUS_DATASOURCE_PASSWORD: ${PASSWORD_DB}
+      QUARKUS_DATASOURCE_JDBC_URL: ${JDBC_URL}
+      QUARKUS_DATASOURCE_JDBC_MAX_SIZE: 16
+      # Configuraciones Hibernate
+      QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: none
+      # Desabilitar Banner de Quarkus
+      QUARKUS_BANNER_ENABLED: false
+    ports:
+      - 6543:5908  # Map your application port
+    networks:
+      - is3_red
+    hostname: gpe_api
+    volumes:
+     - csv_temporales:/tmp
+     - logs:/home/jboss/logs/pinta # Mapeo del volumen al directorio dentro del contenedor
+
+
+  frontend:
+    # will search local image
+    image: is3untdf/gpe_front:1.0.0
+    container_name: gpe_front
+    deploy:
+      resources:
+        limits:
+          memory: 250M
+            #restart: always
+    environment:
+      MY_APP_API_URL: ${API_URL}
+        #ports:
+        #- 3000:80
+    networks:
+      - is3_red
+    hostname: gpe_front
+
+networks:
+  is3_red: 
+    driver: bridge
+    external: true
+
+volumes:
+  pg_data:
+  csv_temporales: # Necesario para recuperar los archivos CSV exportados desde la DB
+  logs: # This volume is just mounted inside the container. Is only persisted in the filesystem outside the container.
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/pinta/api/
+

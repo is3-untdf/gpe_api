@@ -1,0 +1,54 @@
+#Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+.flattened-pom.xml
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# IntelliJ
+../.idea/
+.idea
+*.ipr
+*.iml
+*.iws
+
+# NetBeans
+nb-configuration.xml
+
+# Visual Studio Code
+.vscode
+.factorypath
+
+# OSX
+.DS_Store
+
+# Vim
+*.swp
+*.swo
+
+# patch
+*.orig
+*.rej
+
+# Local environment
+*.env
+deploy/.env
+deploy/vmIS3
+deploy/cmxs.sql
+*.openapi
+
+# Plugin directory
+/.quarkus/cli/plugins/
+
+# APP
+src/test
+logs
+src/main/resources/templates/menu.html
+src/main/resources/templates/reportes.html
